@@ -1,32 +1,28 @@
 const express = require("express");
 const app = express();
+const bodyParser = require("body-parser");
 
-// Dizendo para o express utilizar ejs como render HTML.
+// Dizendo para o express utilizar ejs como render HTML: 
 app.set('view engine', 'ejs');
 app.use(express.static('public')); // Para aceitar arquivos estáticos (css,imagem,dados)
 
-app.get("/:nome/:lang", (req,res) => {
-    var nome = req.params.nome;
-    var lang = req.params.lang;
-    var exibirMsg = true 
+app.use(bodyParser.urlencoded({extended : false}));
+app.use(bodyParser.json()); // Permite que seja lido dados de form enviados via JSON.
 
-
-    var produtos = [
-        {nome:"Carne moida", preco: 45},
-        {nome: "Picanha", preco: 100},
-        {nome: "Maminha", preco: 50},
-        {nome: "Colchão Mole", preco: 25}
-    ]
-
-
-    res.render("index", {
-        nome: nome,
-        lang: lang,
-        msg: exibirMsg,
-        produtos: produtos
-    }); // Para desenhar arquivos HTML na tela com ejs
+//Rotas:
+app.get("/", (req,res) => {
+    res.render("Index");
 });
 
+app.get("/perguntar", (req,res) => {
+    res.render("perguntar");
+});
+
+app.post("/salvarpergunta", (req,res) => { //Mudando meu metodo para POST - Geralmente para receber dados form
+    var titulo = req.body.titulo; // Pegando Informacoes form
+    var descricao = req.body.descricao;
+    res.send("titulo: " + titulo + " " + "descricao: " + descricao);
+});
 
 app.listen(8080, (erro ) =>{
     if(erro){
