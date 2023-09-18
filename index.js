@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const connection = require("./database/database");
 const Pergunta = require("./database/Pergunta");   
+const Resposta = require("./database/Resposta");
 
 //Database
 
@@ -25,7 +26,9 @@ app.use(bodyParser.json()); // Permite que seja lido dados de form enviados via 
 
 //Rotas:
 app.get("/", (req, res) => {
-    Pergunta.findAll({raw: true}).then(perguntas => {
+    Pergunta.findAll({raw: true, order:[
+        ['id','DESC'] // Para mudar a ordem de exibição
+    ]}).then(perguntas => {
         res.render("Index", {
             perguntas: perguntas
         });
@@ -45,6 +48,42 @@ app.post("/salvarpergunta", (req, res) => { //Mudando meu metodo para POST - Ger
         descricao: descricao
     }).then(()=>{
         res.redirect("/");  // Funcao express. Redirecionamento
+    });
+});
+
+app.get("/pergunta/:id", (req,res) => {
+    var id = req.params.id;
+    Pergunta.findOne({
+        where: {id: id}
+    }).then(pergunta =>{
+        if(pergunta != undefined){
+
+            Resposta.findAll({
+                where: {perguntaID: pergunta.id}, // exibindo respostas que tenham o perguntaID igual ao id de pergunta da page
+                order: [
+                    ['id', 'DESC']
+                ]
+            }).then(respostas => {
+                res.render("pergunta", {
+                    pergunta: pergunta,
+                    respostas: respostas 
+                });
+            });
+        }else{
+            res.redirect("/");
+        }
+    }); // 1 dado sequelize
+});
+
+app.post("/responder", (req,res) =>{
+    var corpo = req.body.corpo;
+    var perguntaID = req.body.pergunta
+
+    Resposta.create({
+        corpo: corpo,
+        perguntaID: perguntaID
+    }).then(()=>{
+        res.redirect("/pergunta/" +perguntaID)
     });
 });
 
